@@ -1,9 +1,10 @@
 import json
 import logging
-from zoneinfo import available_timezones
-import requests
-from dataclasses import dataclass
 import urllib
+from dataclasses import dataclass
+
+import requests
+
 logging.basicConfig(level=logging.INFO)
 
 @dataclass
