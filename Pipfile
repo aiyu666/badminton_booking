@@ -6,6 +6,8 @@ name = "pypi"
 [packages]
 requests = "*"
 python-dotenv = "*"
+pre-commit = "*"
+black = "*"
 
 [dev-packages]
 
