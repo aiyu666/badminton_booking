@@ -105,9 +105,7 @@ class Sporestrofit:
         return response
 
     def _filter_location_query_data(self, contents: dict) -> list:
-        all_location_data = contents["Data"]["ResultData"]["AvailableData"][
-            "DataTable"
-        ]["DataRow"]
+        all_location_data = self._get_data_row(contents)
         result = []
         if isinstance(all_location_data, list):
             for data in all_location_data:

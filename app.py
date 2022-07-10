@@ -18,7 +18,7 @@ for j in query_data:
     for i in available_data:
         msg += f"\n[{j['use_date']}] \n區域： {j['LID_name']} \n場地：{j['LSID_name']}\n總共有 {len(available_data)} 個時段！\n時段如下:\n{i['Time']}\n價格為: {j['price']}\n"
 
-line.send_notify_message(msg)
+line.send_notify_message("test")
 
 
 """
