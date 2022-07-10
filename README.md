@@ -13,6 +13,16 @@
 pipenv install
 ```
 
+### Setup the pre-commit
+```
+pre-commit install
+```
+
+### Check all file by pre-commit
+```
+pre-commit run --all-files
+```
+
 ### Run script with virtual env
 
 ```
