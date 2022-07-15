@@ -86,6 +86,7 @@ class WebPlatform:
     def __post_init__(self):
         self.captcha_url = f"{PLACE_VARIABLES[self.place]['host_url']}/{CAPTCHA_URI}"
         self.host_url = f"{PLACE_VARIABLES[self.place]['host_url']}/{PLACE_VARIABLES[self.place]['place_uri']}"
+        logging.info(f"Starting with the {self.place} platform")
 
     def _get_captcha_image(self) -> resp_models.Response:
         return requests.request("GET", self.captcha_url)
@@ -119,6 +120,20 @@ class WebPlatform:
         except KeyError:
             logging.error("There was no Set-Cookie header")
             return False
+
+    def set_existing_asp_session_id(self):
+        self.asp_session_id = os.getenv(
+            f"ASP_SESSION_ID_{PLACE_VARIABLES[self.place]['english_name'].upper()}",
+            None,
+        )
+
+        if not self.asp_session_id:
+            logging.info(
+                "There is no exist asp session id. Let's login to setup a new session"
+            )
+            self.get_valid_asp_session_id()
+
+        logging.info(f"The asp session ID is: {self.asp_session_id}")
 
     def _login_to_platform(self) -> resp_models.Response:
         login_url = f"{self.host_url}?Module=login_page&files=login"
