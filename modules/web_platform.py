@@ -75,7 +75,6 @@ class WebPlatform:
     asp_session_id: str = None
     captcha_number: str = None
     captcha_url: str = None
-    day_delta: str = None
     host_url: str = None
     line_object: object = Line()
     login_id: str = os.getenv("ACCOUNT_ID")
