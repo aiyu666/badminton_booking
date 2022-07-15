@@ -4,15 +4,16 @@ import re
 from dataclasses import dataclass
 from io import BytesIO
 
+import dotenv
 import pytesseract
 import requests
-from dotenv import load_dotenv
 from PIL import Image
 from requests import models as resp_models
 
 from .line import Line
 
-load_dotenv(override=True)
+dotenv_file = dotenv.find_dotenv()
+dotenv.load_dotenv(override=True)
 logging.basicConfig(level=logging.INFO)
 
 
@@ -183,4 +184,12 @@ class WebPlatform:
             )
             raise TimeoutError(f"Login for {self.retry_times} times but still failed")
 
+        self.store_asp_session_id_to_env_file()
         logging.info("Login Successful!")
+
+    def store_asp_session_id_to_env_file(self):
+        dotenv.set_key(
+            dotenv_file,
+            f"ASP_SESSION_ID_{PLACE_VARIABLES[self.place]['english_name'].upper()}",
+            self.asp_session_id,
+        )
