@@ -7,6 +7,12 @@
 
 ## Setup your env
 
+### Install tesseract
+
+```
+brew install tesseract
+```
+
 ### Install package
 
 ```
