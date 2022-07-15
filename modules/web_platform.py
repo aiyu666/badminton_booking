@@ -1,6 +1,7 @@
 import logging
 import os
 import re
+import time
 from dataclasses import dataclass
 from io import BytesIO
 
@@ -67,22 +68,19 @@ PLACE_VARIABLES = {
 class WebPlatform:
 
     place: str
-    venue: str
-    start_time: str
-    end_time: str
+    appoint_retry_interval_seconds: float = float(
+        os.getenv("APPOINT_RETRY_INTERVAL_SECONDS")
+    )
+    appoint_retry_times: int = int(os.getenv("APPOINT_RETRY_TIMES"))
     asp_session_id: str = None
     captcha_number: str = None
     captcha_url: str = None
-    date: str = None
     day_delta: str = None
     host_url: str = None
     line_object: object = Line()
     login_id: str = os.getenv("ACCOUNT_ID")
     login_pwd: str = os.getenv("ACCOUNT_PASSWORD")
-    retry_times: int = int(os.getenv("LOGIN_RETRY_TIMES"))
-    # https://www.cjcf.com.tw/NewCaptcha.aspx
-    # https://www.cjcf.com.tw/CG01.aspx?Module=login_page&files=login
-    # https://www.cjcf.com.tw/CG01.aspx?module=net_booking&files=booking_place&StepFlag=2&PT=1&D=${date}&D2=${time}
+    login_retry_times: int = int(os.getenv("LOGIN_RETRY_TIMES"))
 
     def __post_init__(self):
         self.captcha_url = f"{PLACE_VARIABLES[self.place]['host_url']}/{CAPTCHA_URI}"
@@ -164,7 +162,7 @@ class WebPlatform:
         is_login_success = False
         logging.info(f"Start to login to {self.place} platform")
 
-        for _ in range(self.retry_times):
+        for _ in range(self.login_retry_times):
             captcha_response = self._get_captcha_image()
             if not self._set_captcha_number(captcha_response):
                 continue
@@ -180,9 +178,11 @@ class WebPlatform:
 
         if not is_login_success:
             self.line_object.send_notify_message(
-                f"Login for {self.retry_times} times but still failed"
+                f"Login for {self.login_retry_times} times but still failed"
             )
-            raise TimeoutError(f"Login for {self.retry_times} times but still failed")
+            raise TimeoutError(
+                f"Login for {self.login_retry_times} times but still failed"
+            )
 
         self.store_asp_session_id_to_env_file()
         logging.info("Login Successful!")
@@ -193,3 +193,47 @@ class WebPlatform:
             f"ASP_SESSION_ID_{PLACE_VARIABLES[self.place]['english_name'].upper()}",
             self.asp_session_id,
         )
+
+    def _get_appointment_response(self, date: str, start_time: str, venue: str):
+        # appoint_url = f"{self.host_url}?module=net_booking&files=booking_place&StepFlag=25&QPid=87&QTime=16&PT=1&D=2022/07/16"
+        appoint_url = f"{self.host_url}?module=net_booking&files=booking_place&StepFlag=25&QPid={venue}&QTime={start_time}&PT=1&D={date}"
+
+        headers = {
+            "cookie": self.asp_session_id,
+        }
+
+        response = requests.request("GET", appoint_url, headers=headers)
+
+        return response
+
+    def _check_appointment_is_success(self, response: resp_models.Response) -> bool:
+        success_keyword = "CG01.aspx?module=net_booking&files=booking_place&X=1"
+        if response.text.find(success_keyword) == -1:
+            return False
+
+        return True
+
+    def appoint_with_specific_place_and_time(
+        self, date: str, start_time: str, venue: str
+    ):
+        is_appointment_success = False
+        logging.info(f"Start to appoint with {self.place} platform")
+
+        for _ in range(self.appoint_retry_times):
+            appoint_response = self._get_appointment_response(date, start_time, venue)
+            if not self._check_appointment_is_success(appoint_response):
+                time.sleep(self.appoint_retry_interval_seconds)
+                continue
+
+            is_appointment_success = True
+            break
+
+        if not is_appointment_success:
+            self.line_object.send_notify_message(
+                f"Appoint {self.place} in {date} {start_time}:00 for {self.appoint_retry_times} times but still failed"
+            )
+            raise TimeoutError(
+                f"Appoint {self.place} in {date} {start_time}:00 for {self.appoint_retry_times} times but still failed"
+            )
+
+        logging.info("Appointment Successful!")

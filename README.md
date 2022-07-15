@@ -40,3 +40,17 @@ pipenv shell
 ```
 python app.py
 ```
+
+### Start to the appointment (temporary)
+
+For save the login time, suggest to login and save the session ID before you start the appointment:
+
+```
+python app.py appoint_setup
+```
+
+Use the following command to start the appointment:
+
+```
+python app.py start_appoint
+```
