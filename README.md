@@ -9,6 +9,8 @@
 
 ### Install tesseract
 
+Please reference to the [documentation](https://github.com/madmaze/pytesseract#installation), or you can use the following command to install on macOS:
+
 ```
 brew install tesseract
 ```
