@@ -2,7 +2,7 @@
 # from modules.sporestrofit import Sporestrofit
 from modules.web_platform import WebPlatform
 
-web_platform = WebPlatform("板橋", "羽B", "19", "21", date="2022-07-16")
+web_platform = WebPlatform("士林", "羽B", "19", "21", date="2022-07-16")
 web_platform.get_valid_asp_session_id()
 
 # TODO (now is for test)

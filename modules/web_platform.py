@@ -41,8 +41,8 @@ PLACE_VARIABLES = {
     },
     "士林": {
         "english_name": "ShiLin",
-        "host_url": "",
-        "place_uri": "",
+        "host_url": "https://www.ymca.com.tw",
+        "place_uri": "slsc68.aspx",
     },
     "大同": {
         "english_name": "DaTong",
@@ -56,8 +56,8 @@ PLACE_VARIABLES = {
     },
     "永和": {
         "english_name": "YongHe",
-        "host_url": "",
-        "place_uri": "",
+        "host_url": "https://scr.cyc.org.tw",
+        "place_uri": "tp10.aspx",
     },
 }
 
