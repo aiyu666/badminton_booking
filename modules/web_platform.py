@@ -1,7 +1,7 @@
+import asyncio
 import logging
 import os
 import re
-import time
 from dataclasses import dataclass
 from io import BytesIO
 
@@ -63,6 +63,8 @@ PLACE_VARIABLES = {
     },
 }
 
+APPOINT_RETRY_INTERVAL_SECONDS = float(os.getenv("APPOINT_RETRY_INTERVAL_SECONDS"))
+
 
 @dataclass
 class WebPlatform:
@@ -71,7 +73,6 @@ class WebPlatform:
     appoint_retry_interval_seconds: float = float(
         os.getenv("APPOINT_RETRY_INTERVAL_SECONDS")
     )
-    appoint_retry_times: int = int(os.getenv("APPOINT_RETRY_TIMES"))
     asp_session_id: str = None
     captcha_number: str = None
     captcha_url: str = None
@@ -212,27 +213,21 @@ class WebPlatform:
 
         return True
 
-    def appoint_with_specific_place_and_time(
-        self, date: str, start_time: str, venue: str
+    async def appoint_with_specific_place_and_time(
+        self, date: str, start_time: str, venue: str, num: int
     ):
-        is_appointment_success = False
-        logging.info(f"Start to appoint with {self.place} platform")
+        await asyncio.sleep(num * APPOINT_RETRY_INTERVAL_SECONDS)
+        logging.info(f"Start to appoint with {self.place} platform {venue}")
 
-        for _ in range(self.appoint_retry_times):
-            appoint_response = self._get_appointment_response(date, start_time, venue)
-            if not self._check_appointment_is_success(appoint_response):
-                time.sleep(self.appoint_retry_interval_seconds)
-                continue
-
-            is_appointment_success = True
-            break
-
-        if not is_appointment_success:
+        appoint_response = self._get_appointment_response(date, start_time, venue)
+        if not self._check_appointment_is_success(appoint_response):
             self.line_object.send_notify_message(
-                f"Appoint {self.place} in {date} {start_time}:00 for {self.appoint_retry_times} times but still failed"
+                f"Appoint {self.place} {venue} in {date} {start_time}:00 but failed"
             )
-            raise TimeoutError(
-                f"Appoint {self.place} in {date} {start_time}:00 for {self.appoint_retry_times} times but still failed"
-            )
+            return
+
+        self.line_object.send_notify_message(
+            f"Appoint {self.place} {venue} in {date} {start_time}:00 Success!"
+        )
 
         logging.info("Appointment Successful!")
